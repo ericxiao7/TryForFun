@@ -1,0 +1,58 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder 编辑器
+
+这是一个临时脚本文件。
+"""
+
+def goCheck():
+    # 判断是否继续运行
+    judge = input('是否继续(y/n):')
+    if judge.startswith('y'):
+        return True
+    else:
+        return False
+
+def proGo(nu):
+    # 主功能，最原始的方法筛选素数
+    li = []
+    for n in range(2,nu+1):
+        for i in range(2,n):
+            if n % i == 0:
+                break
+        else:
+            li.append(n)
+    print('该范围内共有素数%d个'%len(li))
+    print(li)
+    return True
+
+def numCheck(num):
+    # 检查输入是否符合要求
+    try:
+        number = int(num)
+        if number < 2:
+            print("输入数字过小")
+            return False
+        else:
+            return True
+    except:
+        print("输入信息可能类型错误")
+        return False
+
+# 进入主框架
+print("*********************")
+print("-----欢-迎-使-用------")
+go = True
+
+while go:
+    print('-------------------')
+    num = input("请输入上限：")
+    if numCheck(num):
+        nu = int(num)
+        proGo(nu)
+    else:
+        print('输入信息不符')
+    go = goCheck()
+else:
+    print("感谢使用，已退出程序。")
+    print("*********************")
