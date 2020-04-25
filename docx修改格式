@@ -1,0 +1,113 @@
+"""
+    win32com库一直报错，只能修改一篇文章，然后一堆不知名的错误，不会修改，放弃；试试docx库。
+    修改格式不会用；学习别人用新建文档方式绕开
+    https://www.jianshu.com/p/422a5cac173b
+    （1）docx库无法保存下图片，且默认图片所在段落长度为零；不知道runs是做什么的，很难直接修改已有文档格式（我不会）
+    （2）doc和docx文件是完全不同的文件类型。docx文件是doc文字、图片和格式的组合压缩。
+    （3）使用环境上win32com仅支持windows平台，但是支持doc和docx两种文件；
+        docx库全平台，但是文件类型仅支持docx文档
+    （4）两个库的逻辑完全不同。
+        win32com是模仿人对Word等程序的操作，直接调用Word程序的接口，所以可以支持doc/docx两种格式的操作。
+        但是会遇到海量的问题，并且是基于电脑硬件、操作系统、Word程序等产生的问题，我不会解决，没准可以试试虚拟机。
+        docx库，是针对docx文件压缩中的文件进行修改，因此不限于平台，但是受限于文档类型，同时速度快，耗时约为五分之一。
+    （5）docx库文档齐全，好找，用的人也多，复制粘贴的选择多。win32com 资料较少，似乎应该更多参考VBA
+
+"""
+import os
+import time
+import docx
+from docx import Document
+from docx.shared import Pt  #定义像素大小
+from docx.shared import Inches  #定义英尺
+from docx.oxml.ns import qn  #定义style的
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+
+path = 'C:\\Users\Administrator\Desktop\新建文件夹'
+
+def main(path):
+    stat_time = time.time()
+    name_list = os.listdir(path)
+    print('共有文档：',len(name_list),'个。')
+    print()
+    # print(name_list)
+
+    for name in name_list:
+        w_path = os.path.join(path,name)
+        new_name = 'new_'+str(name)
+        print('处理中')
+        process(w_path,new_name)
+        print(name,'处理完成')
+        print('************************')
+
+    end_time = time.time()
+    print('完成')
+    print('共耗时：',end_time-stat_time)
+
+def process(w_path,new_name):
+
+    #打开要修改的文档：1.docx
+    data = docx.Document(w_path)
+
+    #新建一个空白文档
+    data_change = Document()
+
+    #设置用户需要的格式
+    # 大标题格式
+    user_style1 = data_change.styles.add_style('user_style1', 1)
+    user_style1.font.size = Pt(22)
+    user_style1.font.bold = True
+    user_style1.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    user_style1.font.name = u'方正小标宋简体'
+    user_style1._element.rPr.rFonts.set(qn('w:eastAsia'), u'方正小标宋简体')
+    # user_style1._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+
+    # 文章内标题格式
+    user_style2 = data_change.styles.add_style('user_style2', 1)
+    user_style2.font.size = Pt(16)
+    user_style2.font.bold = True
+    # user_style2.font.color.rgb = RGBColor(0x00, 0x00, 0x00)
+    user_style2.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    user_style2.font.name = u'黑体'
+    user_style2._element.rPr.rFonts.set(qn('w:eastAsia'), u'黑体')
+    # user_style2._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')
+
+    # 一般段落格式
+    user_style3 = data_change.styles.add_style('user_style3', 1)
+    user_style3.font.size = Pt(16)
+    user_style3.font.bold = False
+    user_style3.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+    user_style3.font.name = u'仿宋'
+    user_style3._element.rPr.rFonts.set(qn('w:eastAsia'), u'仿宋')
+    user_style3.paragraph_format.first_line_indent = Inches(0.4)
+
+    #定义函数三个
+    def change_ap_01(title):
+            data_change.add_paragraph(text = title,style = user_style1)
+
+    def change_ap_02(title):
+            data_change.add_paragraph(text = title,style = user_style2)
+
+    def change_ap_03(title):
+            data_change.add_paragraph(text = title,style = user_style3)
+
+    l = len(data.paragraphs)
+    print('段落数：',l)
+    #print(type(data.paragraphs))
+    #循环输出文档每一段的元素并修改格式
+    for n in range(0,l):
+        element = data.paragraphs[n].text
+
+        #print(type(element))
+        if n == 0:
+            change_ap_01(element)
+        elif len(element)<32:
+            change_ap_02(element)
+        else:
+            change_ap_03(element)
+
+    #保存
+    data_change.save(new_name)
+
+
+if __name__ == '__main__':
+    main(path)
